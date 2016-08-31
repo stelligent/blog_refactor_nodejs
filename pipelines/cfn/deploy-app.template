@@ -1,0 +1,329 @@
+{
+   "AWSTemplateFormatVersion" : "2010-09-09",
+   "Description" : "Creates a NodeJSApp stack",
+   "Parameters" : {
+      "PropertyBool" : {
+         "Description" : "chef-solo boolean node value",
+         "Type" : "String"
+      },
+      "ASGInstanceType" : {
+         "Default" : "t2.micro",
+         "Description" : "Existing VPC ID to use",
+         "Type" : "String"
+      },
+      "AWSKeyPair" : {
+         "Description" : "EC2 Keypair",
+         "Type" : "AWS::EC2::KeyPair::KeyName"
+      },
+      "PropertyStr" : {
+         "Description" : "chef-solo string node value",
+         "Type" : "String"
+      },
+      "ASGImageId" : {
+         "Type" : "AWS::EC2::Image::Id",
+         "Default" : "ami-d90d92ce",
+         "Description" : "Existing VPC ID to use"
+      },
+      "VpcId" : {
+         "Type" : "AWS::EC2::VPC::Id",
+         "Description" : "Existing VPC ID to use"
+      },
+      "ASGSubnetIds" : {
+         "Description" : "The subnets the ELB will direct traffic to",
+         "Type" : "CommaDelimitedList"
+      },
+      "PropertyUrl" : {
+         "Type" : "String",
+         "Description" : "chef-solo url node value"
+      },
+      "PropertyNum" : {
+         "Type" : "String",
+         "Description" : "chef-solo numeric node value"
+      },
+      "ASGAvailabilityZones" : {
+         "Type" : "CommaDelimitedList",
+         "Description" : "The AZs the AutoScaling group will deploy to"
+      }
+   },
+   "Resources" : {
+      "scaleUpPolicy" : {
+         "Type" : "AWS::AutoScaling::ScalingPolicy",
+         "Properties" : {
+            "AdjustmentType" : "ChangeInCapacity",
+            "Cooldown" : 300,
+            "AutoScalingGroupName" : {
+               "Ref" : "autoScalingGroup"
+            },
+            "ScalingAdjustment" : "3"
+         }
+      },
+      "alarmLow" : {
+         "Properties" : {
+            "MetricName" : "CPUUtilization",
+            "Namespace" : "AWS/EC2",
+            "Threshold" : "30",
+            "AlarmActions" : [
+               {
+                  "Ref" : "scaleDownPolicy"
+               }
+            ],
+            "EvaluationPeriods" : "1",
+            "Period" : "300",
+            "AlarmDescription" : "Scale-down if CPU < 30% for 5 minutes",
+            "Dimensions" : [
+               {
+                  "Value" : {
+                     "Ref" : "autoScalingGroup"
+                  },
+                  "Name" : "AutoScalingGroupName"
+               }
+            ],
+            "Statistic" : "Average",
+            "ComparisonOperator" : "LessThanThreshold"
+         },
+         "Type" : "AWS::CloudWatch::Alarm"
+      },
+      "alarmHigh" : {
+         "Type" : "AWS::CloudWatch::Alarm",
+         "Properties" : {
+            "AlarmActions" : [
+               {
+                  "Ref" : "scaleUpPolicy"
+               }
+            ],
+            "Threshold" : "75",
+            "Namespace" : "AWS/EC2",
+            "MetricName" : "CPUUtilization",
+            "EvaluationPeriods" : "1",
+            "Period" : "60",
+            "AlarmDescription" : "Scale-up if CPU > 75% for 1 minutes",
+            "Dimensions" : [
+               {
+                  "Name" : "AutoScalingGroupName",
+                  "Value" : {
+                     "Ref" : "autoScalingGroup"
+                  }
+               }
+            ],
+            "Statistic" : "Average",
+            "ComparisonOperator" : "GreaterThanThreshold"
+         }
+      },
+      "autoScalingGroup" : {
+         "Properties" : {
+            "LoadBalancerNames" : [
+               {
+                  "Ref" : "loadBalancer"
+               }
+            ],
+            "LaunchConfigurationName" : {
+               "Ref" : "launchConfig"
+            },
+            "VPCZoneIdentifier" : {
+               "Ref" : "ASGSubnetIds"
+            },
+            "AvailabilityZones" : {
+               "Ref" : "ASGAvailabilityZones"
+            },
+            "MaxSize" : 3,
+            "HealthCheckType" : "ELB",
+            "HealthCheckGracePeriod" : 300,
+            "MinSize" : 1
+         },
+         "Type" : "AWS::AutoScaling::AutoScalingGroup",
+         "CreationPolicy" : {
+            "ResourceSignal" : {
+               "Timeout" : "PT10M",
+               "Count" : "1"
+            }
+         }
+      },
+      "instanceRole" : {
+         "Properties" : {
+            "Path" : "/",
+            "Policies" : [
+               {
+                  "PolicyName" : "NodeJSApp-policy",
+                  "PolicyDocument" : {
+                     "Statement" : [
+                        {
+                           "Action" : [
+                              "cloudwatch:GetMetricStatistics",
+                              "cloudwatch:ListMetrics",
+                              "cloudwatch:PutMetricData",
+                              "ec2:DescribeTags"
+                           ],
+                           "Resource" : "*",
+                           "Effect" : "Allow"
+                        }
+                     ],
+                     "Version" : "2012-10-17"
+                  }
+               }
+            ],
+            "AssumeRolePolicyDocument" : {
+               "Version" : "2012-10-17",
+               "Statement" : [
+                  {
+                     "Principal" : {
+                        "Service" : [
+                           "ec2.amazonaws.com"
+                        ]
+                     },
+                     "Effect" : "Allow",
+                     "Action" : [
+                        "sts:AssumeRole"
+                     ]
+                  }
+               ]
+            }
+         },
+         "Type" : "AWS::IAM::Role"
+      },
+      "instanceProfile" : {
+         "Type" : "AWS::IAM::InstanceProfile",
+         "Properties" : {
+            "Path" : "/",
+            "Roles" : [
+               {
+                  "Ref" : "instanceRole"
+               }
+            ]
+         }
+      },
+      "launchConfig" : {
+         "Type" : "AWS::AutoScaling::LaunchConfiguration",
+         "Properties" : {
+            "IamInstanceProfile" : {
+               "Ref" : "instanceProfile"
+            },
+            "ImageId" : {
+               "Ref" : "ASGImageId"
+            },
+            "UserData" : {
+               "Fn::Base64" : {
+                  "Fn::Join" : [
+                     "",
+                     [
+                        "#!/bin/bash\napt-get update\napt-get install git -y\n\n#clone application (shallow)\ngit clone https://github.com/stelligent/blog_refactor_nodejs /opt/blog_refactor_nodejs\n\n#install chefdk\nif [ \":\" == \":$(dpkg -l | grep chefdk)\" ]; then\n  pushd /tmp\n  wget --quiet https://packages.chef.io/stable/ubuntu/12.04/chefdk_0.16.28-1_amd64.deb\n  dpkg -i chefdk_0.16.28-1_amd64.deb\n  mkdir /tmp/cookbooks\nfi\n\n#vendor required cookbooks from the Chef Supermarket\npushd /opt/blog_refactor_nodejs/pipelines/cookbooks/blog_refactor_nodejs\nberks vendor /tmp/cookbooks -d\n\ncat > /tmp/chef.json <<CHEFJSON\n{\n  \"run_list\": [\n    \"blog_refactor_nodejs\"\n  ],\n  \"blog_refactor_nodejs\": {\n    \"property_str\": \"",
+                        {
+                           "Ref" : "PropertyStr"
+                        },
+                        "\",\n    \"property_num\": ",
+                        {
+                           "Ref" : "PropertyNum"
+                        },
+                        ",\n    \"property_bool\": ",
+                        {
+                           "Ref" : "PropertyBool"
+                        },
+                        ",\n    \"property_url\": \"",
+                        {
+                           "Ref" : "PropertyUrl"
+                        },
+                        "\"\n  }\n}\nCHEFJSON\n\ncat > /tmp/solo.rb <<SOLO\n  cookbook_path ['/tmp/cookbooks', '/opt/blog_refactor_nodejs/pipelines/cookbooks']\nSOLO\n\nchef-solo -c /tmp/solo.rb -j /tmp/chef.json\ncfn-signal -e $? --stack ",
+                        {
+                           "Ref" : "AWS::StackName"
+                        },
+                        " --resource autoScalingGroup --region ",
+                        {
+                           "Ref" : "AWS::Region"
+                        },
+                        "\n"
+                     ]
+                  ]
+               }
+            },
+            "SecurityGroups" : [
+               {
+                  "Ref" : "securityGroup"
+               }
+            ],
+            "KeyName" : {
+               "Ref" : "AWSKeyPair"
+            },
+            "AssociatePublicIpAddress" : false,
+            "InstanceType" : {
+               "Ref" : "ASGInstanceType"
+            }
+         }
+      },
+      "securityGroup" : {
+         "Type" : "AWS::EC2::SecurityGroup",
+         "Properties" : {
+            "SecurityGroupIngress" : [
+               {
+                  "FromPort" : 8080,
+                  "IpProtocol" : "tcp",
+                  "ToPort" : 8080,
+                  "CidrIp" : "0.0.0.0/0"
+               },
+               {
+                  "ToPort" : 22,
+                  "FromPort" : 22,
+                  "IpProtocol" : "tcp",
+                  "CidrIp" : "0.0.0.0/0"
+               }
+            ],
+            "VpcId" : {
+               "Ref" : "VpcId"
+            },
+            "GroupDescription" : "Load balancer & autoscaling group security ingress/egress"
+         }
+      },
+      "scaleDownPolicy" : {
+         "Type" : "AWS::AutoScaling::ScalingPolicy",
+         "Properties" : {
+            "AdjustmentType" : "ChangeInCapacity",
+            "Cooldown" : 600,
+            "ScalingAdjustment" : "-1",
+            "AutoScalingGroupName" : {
+               "Ref" : "autoScalingGroup"
+            }
+         }
+      },
+      "loadBalancer" : {
+         "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+         "Properties" : {
+            "Subnets" : {
+               "Ref" : "ASGSubnetIds"
+            },
+            "HealthCheck" : {
+               "UnhealthyThreshold" : 5,
+               "HealthyThreshold" : 3,
+               "Interval" : 90,
+               "Timeout" : 60,
+               "Target" : "HTTP:8080/"
+            },
+            "Listeners" : [
+               {
+                  "Protocol" : "TCP",
+                  "InstancePort" : 8080,
+                  "LoadBalancerPort" : 8080
+               }
+            ],
+            "CrossZone" : true,
+            "SecurityGroups" : [
+               {
+                  "Ref" : "securityGroup"
+               }
+            ],
+            "ConnectionDrainingPolicy" : {
+               "Timeout" : 300,
+               "Enabled" : true
+            },
+            "Scheme" : "internal"
+         }
+      }
+   },
+   "Outputs" : {
+      "DNSName" : {
+         "Value" : {
+            "Fn::GetAtt" : [
+               "loadBalancer",
+               "DNSName"
+            ]
+         }
+      }
+   }
+}

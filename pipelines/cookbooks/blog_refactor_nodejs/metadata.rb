@@ -1,0 +1,10 @@
+name 'blog_refactor_nodejs'
+maintainer 'The Authors'
+maintainer_email 'you@example.com'
+license 'all_rights'
+description 'Installs/Configures blog_refactor_nodejs'
+long_description 'Installs/Configures blog_refactor_nodejs'
+version '0.1.0'
+
+depends 'apt'
+depends 'nodejs', '~> 2.4.4'

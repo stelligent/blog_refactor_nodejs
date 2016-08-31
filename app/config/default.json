@@ -1,0 +1,10 @@
+{
+  "app": {
+    "config": {
+      "property_str": null,
+      "property_num": 2001,
+      "property_bool": false,
+      "property_url": "https://jqplay.org/"
+    }
+  }
+}

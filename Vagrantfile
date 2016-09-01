@@ -16,9 +16,10 @@ Vagrant.configure(2) do |config|
   config.vm.provision "chef_solo" do |chef|
     # Specify the local paths where Chef data is stored
     chef.cookbooks_path = ["./pipelines/cookbooks", "/tmp/blog_refactor_nodejs/vendored-cookbooks"]
-    chef.add_recipe "blog_refactor_nodejs::default"
+    chef.add_recipe "NodeJSApp::default"
     chef.json = {
       "blog_refactor_nodejs" => {
+        "folder": "/vagrant",
         "property_str" => "horses",
         "property_num" => 1961,
         "property_bool" => false,
@@ -30,9 +31,8 @@ Vagrant.configure(2) do |config|
     chef.version="12.13.37"
     chef.nodes_path = "/tmp"
   end
-  
+
   config.vm.provision "shell", privileged: true, inline: <<-SCR2
-    forever start --sourceDir /opt/blog_refactor_nodejs/app/ index.js  
+    forever start --sourceDir /vagrant/app index.js
   SCR2
 end
-

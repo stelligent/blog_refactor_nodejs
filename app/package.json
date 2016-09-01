@@ -1,0 +1,9 @@
+{
+  "name": "nodejsapp",
+  "version": "1.0.0",
+  "description": "blog post sample application",
+  "main": "index.js",
+  "dependencies": {
+    "config": "^1.21.0"
+  }
+}

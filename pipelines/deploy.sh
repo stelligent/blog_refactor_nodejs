@@ -23,7 +23,7 @@ git clone --branch ${repository_branch} --depth 1 ${repository_url} .working-fol
 
 # perform static analysis on the code
 pushd ./.working-folder
-  foodcritic -t ~FC001 ./pipelines/cookbooks/blog_refactor_nodejs
+  foodcritic -t ~FC001 pipelines/cookbooks/blog_refactor_nodejs
   find . -name "*.js" -print0 | xargs -0 jslint
 popd
 
@@ -47,17 +47,17 @@ aws cloudformation create-stack \
     ParameterKey=AWSKeyPair,ParameterValue=${aws_keypair} \
     ParameterKey=ASGSubnetIds,ParameterValue=\"${aws_subnets}\" \
     ParameterKey=ASGAvailabilityZones,ParameterValue=\"${aws_azs}\" \
-    ParameterKey=AppName,ParameterValue=${app_name} \
+    ParameterKey=AppName,ParameterValue=blog_refactor_nodejs \
     ParameterKey=PropertyStr,ParameterValue=${PropertyStr:-banjo} \
     ParameterKey=PropertyNum,ParameterValue=${PropertyNum:-144} \
     ParameterKey=PropertyBool,ParameterValue=${PropertyBool:-true} \
     ParameterKey=PropertyUrl,ParameterValue=${PropertyUrl:-https://jqplay.org/}
-    
+
 aws cloudformation wait stack-create-complete --stack-name ${asg_stack_name}
 echo $(aws cloudformation describe-stacks --stack-name ${rds_stack_name} 2>/dev/null) > .working-folder/app.tmp
 
 elb_dns=$(cat .working-folder/app.tmp | jq '.Stacks[0].Outputs[] | select(.OutputKey == "DNSName") | .OutputValue')
-elb_url="https://%{elb_dns}/:8080"
+elb_url="https://%{elb_dns}"
 
 # post-deploy smoke test
-curl -O elb_url
+curl elb_url

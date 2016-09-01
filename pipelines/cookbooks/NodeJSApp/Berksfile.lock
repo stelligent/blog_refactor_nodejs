@@ -1,18 +1,18 @@
 DEPENDENCIES
-  blog_refactor_nodejs
+  NodeJSApp
     path: .
     metadata: true
 
 GRAPH
+  NodeJSApp (0.1.0)
+    apt (>= 0.0.0)
+    nodejs (~> 2.4.4)
   apt (4.0.2)
     compat_resource (>= 12.10)
   ark (1.2.0)
     build-essential (>= 0.0.0)
     seven_zip (>= 0.0.0)
     windows (>= 0.0.0)
-  blog_refactor_nodejs (0.1.0)
-    apt (>= 0.0.0)
-    nodejs (~> 2.4.4)
   build-essential (6.0.4)
     compat_resource (>= 12.10)
     mingw (>= 1.1)

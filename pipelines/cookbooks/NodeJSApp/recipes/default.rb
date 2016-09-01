@@ -12,8 +12,6 @@ script 'install cfn-init' do
     easy_install /root/aws-cfn-bootstrap-latest/
   EOH
 end
-execute 'cfn-init' do
-end
 
 # global npm installations
 %w{jslint forever forever-monitor}.each do |pkg|
@@ -21,8 +19,8 @@ end
 end
 
 # local npm installations
-%w{config mysql}.each do |pkg|
-  nodejs_npm pkg do
+%w{config}.each do |pkg|
+    nodejs_npm pkg do
     path "#{node[:blog_refactor_nodejs][:folder]}/app"
   end
 end
@@ -33,5 +31,5 @@ template "#{node[:blog_refactor_nodejs][:folder]}/app/config/default.json" do
 end
 
 execute 'application startup' do
-  command "forever start --sourceDir #{node[:blog_refactor_nodejs][:folder]} index.js"
+  command "forever start --sourceDir #{node[:blog_refactor_nodejs][:folder]}/app index.js"
 end

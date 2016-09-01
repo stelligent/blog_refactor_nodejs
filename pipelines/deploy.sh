@@ -23,7 +23,7 @@ git clone --branch ${repository_branch} --depth 1 ${repository_url} .working-fol
 
 # perform static analysis on the code
 pushd ./.working-folder
-  foodcritic -t ~FC001 pipelines/cookbooks/blog_refactor_nodejs
+  foodcritic -t ~FC001 "pipelines/cookbooks/${app_name}" -P
   find . -name "*.js" -print0 | xargs -0 jslint
 popd
 

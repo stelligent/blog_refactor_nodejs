@@ -6,11 +6,12 @@ export AWS_VPC_ID="vpc-857a3ee2"
 export AWS_SUBNET_IDS="subnet-c5a76a8c,subnet-3b233a06"
 export AWS_AZS="us-east-1c,us-east-1b"
 export AWS_KEYPAIR="dugas-labs"
+export GIT_BRANCH="phase1"
 
 # set up local variables
 app_name=NodeJSApp
 repository_url=https://github.com/stelligent/blog_refactor_nodejs
-repository_branch=master
+repository_branch=${GIT_BRANCH:-master}
 aws_region=${AWS_REGION:-us-east-1}
 aws_vpc=${AWS_VPC_ID}
 aws_subnets=${AWS_SUBNET_IDS}

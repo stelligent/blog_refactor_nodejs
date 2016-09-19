@@ -71,7 +71,7 @@ aws cloudformation wait stack-create-complete --stack-name ${asg_stack_name}
 echo $(aws cloudformation describe-stacks --stack-name ${asg_stack_name} 2>/dev/null) > .working-folder/app.tmp
 
 elb_dns=$(cat .working-folder/app.tmp | jq '.Stacks[0].Outputs[] | select(.OutputKey == "DNSName") | .OutputValue')
-elb_url="https://%{elb_dns}"
+elb_url="https://%{elb_dns}:8080"
 
 # post-deploy smoke test
 curl elb_url

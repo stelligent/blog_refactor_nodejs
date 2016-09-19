@@ -51,7 +51,7 @@ aws cloudformation create-stack \
   --disable-rollback \
   --region ${aws_region} \
   --stack-name ${asg_stack_name} \
-  --template-url https://s3.amazonaws.com/blog-refactor/cfntemplates/deploy-app.template \
+  --template-url https://s3.amazonaws.com/blog-refactor/cfntemplates/deploy-app.template.json \
   --capabilities CAPABILITY_IAM \
   --tags \
     Key="application",Value=${app_name} \

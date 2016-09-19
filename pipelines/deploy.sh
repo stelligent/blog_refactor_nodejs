@@ -44,14 +44,14 @@ echo {} | jq ".run_list = [\"NodeJSApp\"] | .blog_refactor_nodejs = \
    property_url: \"${PropertyUrl:-https://jqplay.org/}\"}" > ${working_directory}/chef.json
 
 chef_json_key="${asg_stack_name}.json"
-aws s3 cp ${working_directory}/chef.json s3://stelligent-blog/chefjson/jsons/$chef_json_key
+aws s3 cp ${working_directory}/chef.json s3://blog-refactor/chefjson/$chef_json_key
 
 cfn_template=${DEPLOY_TEMPLATE:-./cfn/deploy-app.template}
 aws cloudformation create-stack \
   --disable-rollback \
   --region ${aws_region} \
   --stack-name ${asg_stack_name} \
-  --template-url https://s3.amazonaws.com/stelligent-blog/chefjson/templates/deploy-app.template.json \
+  --template-url https://s3.amazonaws.com/blog-refactor/cfntemplates/deploy-app.template \
   --capabilities CAPABILITY_IAM \
   --tags \
     Key="application",Value=${app_name} \

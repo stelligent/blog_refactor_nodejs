@@ -1,0 +1,4 @@
+source 'https://rubygems.org'
+
+gem 'jslint'
+gem 'blog_refactor_gem', :git => 'git@github.com:stelligent/blog_refactor_gem'

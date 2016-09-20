@@ -49,3 +49,5 @@ nodes
 # Pipelines
 .hidden
 pipelines/.working*
+pipelines/.hidden
+pipelines/store.json

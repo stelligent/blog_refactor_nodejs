@@ -1,6 +1,6 @@
 GIT
   remote: git@github.com:stelligent/blog_refactor_gem
-  revision: 8a0c267038d815d6651133ea00bf138165c716b8
+  revision: bdc82ee19c0d982a6dc2cc27fd99379200c71710
   specs:
     blog_refactor_gem (0.1.1)
       aws-sdk-core (~> 2.3)
@@ -10,7 +10,7 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    aws-sdk-core (2.6.1)
+    aws-sdk-core (2.6.2)
       jmespath (~> 1.0)
     backports (3.6.8)
     cucumber-core (2.0.0)

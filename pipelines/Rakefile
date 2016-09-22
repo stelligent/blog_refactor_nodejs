@@ -1,7 +1,7 @@
 require 'yaml'
 require 'blog_refactor_gem'
 require_relative './lib/extended_static_analysis'
-require_relative './lib/custom_environment_configuration'
+require_relative './lib/custom_app_prerequisites'
 
 meta_path = File.join(File.expand_path(File.dirname(__FILE__)), 'pipeline-meta.yml')
 @meta = YAML.load(IO.read(meta_path))

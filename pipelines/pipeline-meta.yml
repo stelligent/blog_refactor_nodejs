@@ -1,37 +1,23 @@
 ---
 :repository_url: https://github.com/stelligent/blog_refactor_nodejs
 :name: NodeJSApp
-:branch: phase2
-:language: nodejs
-:language_version: 5.4.1
-:log_level: warn
 :pipeline: build
 :steps:
 - :name: scm_polling
-  :description: Triggered by source code commits, pulls code from the VCS
+  :description: Entry point into the pipeline
   :phase: commit
-  :depends:
-- :name: static_analysis
-  :description: Performs default static code analysis plus
+- :name: extended_static_analysis
+  :description: Performs default static code analysis (plus jslint)
   :phase: commit
-  :depends: scm_polling
 - :name: unit_testing
   :description: Performs application unit tests
   :phase: commit
-  :depends: static_analysis
-- :name: custom_environment_configuration
-  :description: Performs application unit tests
+- :name: custom_app_prerequisites
+  :description: Performs app-specific preparation
   :phase: acceptance
-  :depends: unit_testing
-- :name: environment_creation
-  :description: Performs application unit tests
+- :name: app_deployment
+  :description: Deploys the acceptance environment
   :phase: acceptance
-  :depends: custom_environment_configuration
-  :chefjson:
-    :run_list:
-      - NodeJSApp
-    :blog_refactor_nodejs:
 - :name: automated_testing
-  :description: Performs application unit tests
+  :description: Tests the acceptance environment
   :phase: acceptance
-  :depends: environment_creation
